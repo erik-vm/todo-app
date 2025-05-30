@@ -2,9 +2,9 @@
 </script>
 
 <template>
-  <footer class="border-top footer text-muted">
-    <div class="container">
-      © 2025 - WebApp
+  <footer class="border-top footer text-muted mt-3">
+    <div class="container text-center p-2">
+      Erik Vainumäe | 233857IADB
     </div>
   </footer>
 </template>

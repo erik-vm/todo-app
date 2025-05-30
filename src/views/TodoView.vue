@@ -5,16 +5,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h1 class="h3">Todo Tasks</h1>
           <div>
-            <RouterLink to="/create" class="btn btn-primary me-2">
-              <i class="fas fa-plus me-2"></i>
-              Create New
-            </RouterLink>
+
             <button
               class="btn btn-success"
               @click="openCreateForm"
             >
               <i class="fas fa-plus me-2"></i>
-              Quick Add
+              Add new task
             </button>
           </div>
         </div>
@@ -328,39 +325,115 @@
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label for="categoryId" class="form-label">Category *</label>
-                    <select
-                      id="categoryId"
-                      v-model="formData.todoCategoryId"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Select a category...</option>
-                      <option
-                        v-for="category in todoStore.categories"
-                        :key="category.id"
-                        :value="category.id"
+                    <div class="input-group">
+                      <select
+                        id="categoryId"
+                        v-model="formData.todoCategoryId"
+                        class="form-select"
+                        required
                       >
-                        {{ category.categoryName }}
-                      </option>
-                    </select>
+                        <option value="">Select a category...</option>
+                        <option
+                          v-for="category in todoStore.categories"
+                          :key="category.id"
+                          :value="category.id"
+                        >
+                          {{ category.categoryName }}
+                        </option>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        @click="showNewCategoryForm = !showNewCategoryForm"
+                        title="Add new category"
+                      >
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+
+                    <!-- New Category Form -->
+                    <div v-if="showNewCategoryForm" class="mt-2 p-2 border rounded bg-light">
+                      <div class="input-group input-group-sm">
+                        <input
+                          v-model="newCategoryName"
+                          type="text"
+                          class="form-control"
+                          placeholder="New category name..."
+                          @keyup.enter="createCategory"
+                        >
+                        <button
+                          type="button"
+                          class="btn btn-success"
+                          @click="createCategory"
+                          :disabled="!newCategoryName.trim()"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          @click="cancelNewCategory"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                   <div class="col-md-6 mb-3">
                     <label for="priorityId" class="form-label">Priority *</label>
-                    <select
-                      id="priorityId"
-                      v-model="formData.todoPriorityId"
-                      class="form-select"
-                      required
-                    >
-                      <option value="">Select a priority...</option>
-                      <option
-                        v-for="priority in todoStore.priorities"
-                        :key="priority.id"
-                        :value="priority.id"
+                    <div class="input-group">
+                      <select
+                        id="priorityId"
+                        v-model="formData.todoPriorityId"
+                        class="form-select"
+                        required
                       >
-                        {{ priority.priorityName }}
-                      </option>
-                    </select>
+                        <option value="">Select a priority...</option>
+                        <option
+                          v-for="priority in todoStore.priorities"
+                          :key="priority.id"
+                          :value="priority.id"
+                        >
+                          {{ priority.priorityName }}
+                        </option>
+                      </select>
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        @click="showNewPriorityForm = !showNewPriorityForm"
+                        title="Add new priority"
+                      >
+                        <i class="fas fa-plus"></i>
+                      </button>
+                    </div>
+
+                    <!-- New Priority Form -->
+                    <div v-if="showNewPriorityForm" class="mt-2 p-2 border rounded bg-light">
+                      <div class="input-group input-group-sm">
+                        <input
+                          v-model="newPriorityName"
+                          type="text"
+                          class="form-control"
+                          placeholder="New priority name..."
+                          @keyup.enter="createPriority"
+                        >
+                        <button
+                          type="button"
+                          class="btn btn-success"
+                          @click="createPriority"
+                          :disabled="!newPriorityName.trim()"
+                        >
+                          <i class="fas fa-check"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-secondary"
+                          @click="cancelNewPriority"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div class="row">
@@ -465,6 +538,12 @@ const formData = ref({
   todoPriorityId: ''
 })
 
+// New category/priority form state
+const showNewCategoryForm = ref(false)
+const showNewPriorityForm = ref(false)
+const newCategoryName = ref('')
+const newPriorityName = ref('')
+
 // Computed properties
 const filteredTasks = computed(() => {
   if (!data.data) return []
@@ -504,7 +583,9 @@ const fetchPageData = async () => {
     // Use the store's tasks data
     data.data = todoStore.tasks;
     // Handle errors if the result has them
-
+    if (result && result.errors) {
+      data.errors = result.errors;
+    }
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -574,6 +655,11 @@ const closeFormModal = () => {
     todoCategoryId: '',
     todoPriorityId: ''
   }
+  // Reset new category/priority forms
+  showNewCategoryForm.value = false
+  showNewPriorityForm.value = false
+  newCategoryName.value = ''
+  newPriorityName.value = ''
 }
 
 const getNextSortOrder = (): number => {
@@ -661,6 +747,54 @@ const isOverdue = (task: ITodoTask): boolean => {
   return dueDate < today
 }
 
+const createCategory = async () => {
+  if (!newCategoryName.value.trim()) return
+
+  try {
+    const categoryData = {
+      categoryName: newCategoryName.value.trim(),
+      categorySort: todoStore.categories.length + 1
+    }
+
+    const newCategory = await todoStore.addCategory(categoryData)
+    formData.value.todoCategoryId = newCategory.id
+    cancelNewCategory()
+    // Refresh categories
+    await todoStore.fetchCategories()
+  } catch (error) {
+    console.error('Error creating category:', error)
+  }
+}
+
+const cancelNewCategory = () => {
+  showNewCategoryForm.value = false
+  newCategoryName.value = ''
+}
+
+const createPriority = async () => {
+  if (!newPriorityName.value.trim()) return
+
+  try {
+    const priorityData = {
+      priorityName: newPriorityName.value.trim(),
+      prioritySort: todoStore.priorities.length + 1
+    }
+
+    const newPriority = await todoStore.addPriority(priorityData)
+    formData.value.todoPriorityId = newPriority.id
+    cancelNewPriority()
+    // Refresh priorities
+    await todoStore.fetchPriorities()
+  } catch (error) {
+    console.error('Error creating priority:', error)
+  }
+}
+
+const cancelNewPriority = () => {
+  showNewPriorityForm.value = false
+  newPriorityName.value = ''
+}
+
 onMounted(async () => {
   await fetchPageData();
 });
@@ -690,6 +824,18 @@ onMounted(async () => {
 
 .modal-backdrop {
   z-index: 1050;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.input-group .btn {
+  border-left: none;
 }
 
 @media (max-width: 768px) {

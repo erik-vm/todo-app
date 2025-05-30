@@ -9,7 +9,7 @@ const userStore = useUserDataStore();
 const logout = async () => {
   userStore.logout()
 
-  await router.push("/")
+  await router.push("/login")
 }
 
 </script>
@@ -43,6 +43,10 @@ const logout = async () => {
           </ul>
 
           <ul v-else class="navbar-nav">
+
+            <li class="nav-item">
+              <RouterLink class="nav-link text-dark" to="/admin">Admin panel</RouterLink>
+            </li>
 
             <li class="nav-item">
               <a class="nav-link text-dark d-flex align-items-center" @click=logout style="cursor: pointer;">

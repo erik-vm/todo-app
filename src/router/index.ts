@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/stores/authStore'
-import Login from '@/views/Login.vue'
-import Register from '@/views/Register.vue'
+import AdminPanelView from '@/views/AdminPanelView.vue'
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
 import TodoView from '@/views/TodoView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -14,19 +15,25 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      component: Login,
+      component: LoginView,
       meta: { requiresGuest: true }
     },
     {
       path: '/register',
       name: 'register',
-      component: Register,
+      component: RegisterView,
       meta: { requiresGuest: true }
     },
     {
       path: '/todos',
       name: 'todos',
       component: TodoView,
+      meta: { requiresAuth: true }
+    },
+      {
+      path: '/admin',
+      name: 'admin',
+      component: AdminPanelView,
       meta: { requiresAuth: true }
     }
 
