@@ -1,0 +1,705 @@
+<template>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="h3">Todo Tasks</h1>
+          <div>
+            <RouterLink to="/create" class="btn btn-primary me-2">
+              <i class="fas fa-plus me-2"></i>
+              Create New
+            </RouterLink>
+            <button
+              class="btn btn-success"
+              @click="openCreateForm"
+            >
+              <i class="fas fa-plus me-2"></i>
+              Quick Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Filters</h5>
+            <div class="row">
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="showCompleted"
+                    v-model="localFilters.showCompleted"
+                    @change="updateFilters"
+                  >
+                  <label class="form-check-label" for="showCompleted">
+                    Show Completed
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="showArchived"
+                    v-model="localFilters.showArchived"
+                    @change="updateFilters"
+                  >
+                  <label class="form-check-label" for="showArchived">
+                    Show Archived
+                  </label>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <select
+                  class="form-select"
+                  v-model="localFilters.categoryId"
+                  @change="updateFilters"
+                >
+                  <option value="">All Categories</option>
+                  <option
+                    v-for="category in todoStore.categories"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    {{ category.categoryName }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <select
+                  class="form-select"
+                  v-model="localFilters.priorityId"
+                  @change="updateFilters"
+                >
+                  <option value="">All Priorities</option>
+                  <option
+                    v-for="priority in todoStore.priorities"
+                    :key="priority.id"
+                    :value="priority.id"
+                  >
+                    {{ priority.priorityName }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="requestIsOngoing" class="text-center py-4">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="data.errors && data.errors.length > 0" class="alert alert-danger" role="alert">
+          <h6>Errors occurred:</h6>
+          <ul class="mb-0">
+            <li v-for="error in data.errors" :key="error">{{ error }}</li>
+          </ul>
+        </div>
+
+        <!-- Tasks Table -->
+        <div v-if="!requestIsOngoing">
+          <div v-if="!filteredTasks || filteredTasks.length === 0" class="text-center py-5 text-muted">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p class="h5">No tasks found</p>
+            <p>Create your first task to get started!</p>
+          </div>
+
+          <div v-else class="card">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>
+                        <i class="fas fa-tasks me-2"></i>Task Name
+                      </th>
+                      <th>
+                        <i class="fas fa-sort-numeric-up me-2"></i>Sort
+                      </th>
+                      <th>
+                        <i class="fas fa-calendar me-2"></i>Created Date
+                      </th>
+                      <th>
+                        <i class="fas fa-calendar-alt me-2"></i>Due Date
+                      </th>
+                      <th>
+                        <i class="fas fa-folder me-2"></i>Category
+                      </th>
+                      <th>
+                        <i class="fas fa-flag me-2"></i>Priority
+                      </th>
+                      <th>
+                        <i class="fas fa-info-circle me-2"></i>Status
+                      </th>
+                      <th>
+                        <i class="fas fa-cogs me-2"></i>Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="item in sortedTasks"
+                      :key="item.id"
+                      :class="{
+                        'table-success': item.isCompleted,
+                        'table-warning': !item.isCompleted && isOverdue(item),
+                        'opacity-75': item.isArchived
+                      }"
+                    >
+                      <td>
+                        <span
+                          :class="{ 'text-decoration-line-through text-muted': item.isCompleted }"
+                          style="cursor: pointer;"
+                          @click="openTaskDetails(item)"
+                        >
+                          {{ item.taskName }}
+                        </span>
+                      </td>
+                      <td>
+                        {{ item.taskSort }}
+                      </td>
+                      <td>
+                        {{ formatDate(item.createdDt) }}
+                      </td>
+                      <td>
+                        <span v-if="item.dueDt" :class="{ 'text-danger fw-bold': isOverdue(item) }">
+                          {{ formatDate(item.dueDt) }}
+                        </span>
+                        <span v-else class="text-muted">-</span>
+                      </td>
+                      <td>
+                        <span class="badge bg-primary">
+                          {{ getCategoryName(item.todoCategoryId) }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge bg-warning text-dark">
+                          {{ getPriorityName(item.todoPriorityId) }}
+                        </span>
+                      </td>
+                      <td>
+                        <div class="d-flex flex-wrap gap-1">
+                          <span
+                            v-if="item.isCompleted"
+                            class="badge bg-success"
+                          >
+                            <i class="fas fa-check me-1"></i>Completed
+                          </span>
+                          <span
+                            v-if="item.isArchived"
+                            class="badge bg-secondary"
+                          >
+                            <i class="fas fa-archive me-1"></i>Archived
+                          </span>
+                          <span
+                            v-if="!item.isCompleted && isOverdue(item)"
+                            class="badge bg-danger"
+                          >
+                            <i class="fas fa-exclamation-triangle me-1"></i>Overdue
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary"
+                            @click="openEditForm(item)"
+                            title="Edit"
+                          >
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-outline-info"
+                            @click="openTaskDetails(item)"
+                            title="Details"
+                          >
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <button
+                            v-if="!item.isCompleted"
+                            type="button"
+                            class="btn btn-outline-success"
+                            @click="handleToggleComplete(item.id)"
+                            title="Mark Complete"
+                          >
+                            <i class="fas fa-check"></i>
+                          </button>
+                          <button
+                            v-else
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            @click="handleToggleComplete(item.id)"
+                            title="Mark Incomplete"
+                          >
+                            <i class="fas fa-undo"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-outline-danger"
+                            @click="handleDeleteTask(item.id)"
+                            title="Delete"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Todo Item Modal -->
+    <div v-if="selectedTask && showTaskModal">
+      <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-tasks me-2"></i>
+                {{ selectedTask.taskName }}
+              </h5>
+              <button type="button" class="btn-close" @click="closeTaskModal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <p><strong>Category:</strong> {{ getCategoryName(selectedTask.todoCategoryId) }}</p>
+                  <p><strong>Priority:</strong> {{ getPriorityName(selectedTask.todoPriorityId) }}</p>
+                  <p><strong>Sort Order:</strong> {{ selectedTask.taskSort }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p><strong>Status:</strong> {{ selectedTask.isCompleted ? 'Completed' : 'Pending' }}</p>
+                  <p><strong>Created:</strong> {{ formatDate(selectedTask.createdDt) }}</p>
+                  <p><strong>Due Date:</strong> {{ selectedTask.dueDt ? formatDate(selectedTask.dueDt) : 'No due date' }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" @click="openEditForm(selectedTask)">
+                <i class="fas fa-edit me-1"></i>Edit
+              </button>
+              <button type="button" class="btn btn-danger" @click="handleDeleteTask(selectedTask.id)">
+                <i class="fas fa-trash me-1"></i>Delete
+              </button>
+              <button type="button" class="btn btn-secondary" @click="closeTaskModal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show" @click="closeTaskModal"></div>
+    </div>
+
+    <!-- Todo Form Modal -->
+    <div v-if="showFormModal">
+      <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ isEditMode ? 'Edit Task' : 'Create New Task' }}</h5>
+              <button type="button" class="btn-close" @click="closeFormModal"></button>
+            </div>
+            <form @submit.prevent="handleQuickSave">
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="taskName" class="form-label">Task Name *</label>
+                  <input
+                    id="taskName"
+                    v-model="formData.taskName"
+                    type="text"
+                    class="form-control"
+                    required
+                    placeholder="Enter task name..."
+                  >
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="categoryId" class="form-label">Category *</label>
+                    <select
+                      id="categoryId"
+                      v-model="formData.todoCategoryId"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Select a category...</option>
+                      <option
+                        v-for="category in todoStore.categories"
+                        :key="category.id"
+                        :value="category.id"
+                      >
+                        {{ category.categoryName }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="priorityId" class="form-label">Priority *</label>
+                    <select
+                      id="priorityId"
+                      v-model="formData.todoPriorityId"
+                      class="form-select"
+                      required
+                    >
+                      <option value="">Select a priority...</option>
+                      <option
+                        v-for="priority in todoStore.priorities"
+                        :key="priority.id"
+                        :value="priority.id"
+                      >
+                        {{ priority.priorityName }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="dueDt" class="form-label">Due Date</label>
+                    <input
+                      id="dueDt"
+                      v-model="formData.dueDt"
+                      type="datetime-local"
+                      class="form-control"
+                    >
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="taskSort" class="form-label">Sort Order</label>
+                    <input
+                      id="taskSort"
+                      v-model.number="formData.taskSort"
+                      type="number"
+                      class="form-control"
+                      min="0"
+                    >
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input
+                        id="isCompleted"
+                        v-model="formData.isCompleted"
+                        class="form-check-input"
+                        type="checkbox"
+                      >
+                      <label class="form-check-label" for="isCompleted">
+                        Mark as completed
+                      </label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input
+                        id="isArchived"
+                        v-model="formData.isArchived"
+                        class="form-check-input"
+                        type="checkbox"
+                      >
+                      <label class="form-check-label" for="isArchived">
+                        Archive task
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                  {{ isEditMode ? 'Update Task' : 'Create Task' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show" @click="closeFormModal"></div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ITodoTask } from "@/domain/ITodoTask";
+import { useTodoStore } from "@/stores/todo";
+import { IResultObject } from "@/types/IResultObject";
+import type { IFilterOptions } from '@/types/IFilterOptions'
+import { ref, reactive, onMounted, computed } from "vue";
+
+const requestIsOngoing = ref(false);
+const data = reactive<IResultObject<ITodoTask[]>>({});
+const todoStore = useTodoStore()
+
+// Modal state
+const showTaskModal = ref(false)
+const showFormModal = ref(false)
+const selectedTask = ref<ITodoTask | null>(null)
+const taskToEdit = ref<ITodoTask | null>(null)
+const isEditMode = ref(false)
+
+// Local filters
+const localFilters = ref<IFilterOptions>({
+  showCompleted: true,
+  showArchived: false,
+  categoryId: undefined,
+  priorityId: undefined,
+})
+
+// Form data for the modal
+const formData = ref({
+  taskName: '',
+  taskSort: 0,
+  dueDt: '',
+  isCompleted: false,
+  isArchived: false,
+  todoCategoryId: '',
+  todoPriorityId: ''
+})
+
+// Computed properties
+const filteredTasks = computed(() => {
+  if (!data.data) return []
+
+  return data.data.filter((task) => {
+    if (!localFilters.value.showCompleted && task.isCompleted) return false
+    if (!localFilters.value.showArchived && task.isArchived) return false
+    if (localFilters.value.categoryId && task.todoCategoryId !== localFilters.value.categoryId) return false
+    if (localFilters.value.priorityId && task.todoPriorityId !== localFilters.value.priorityId) return false
+    return true
+  })
+})
+
+const sortedTasks = computed(() => {
+  return [...filteredTasks.value].sort((a, b) => {
+    // Sort by completion status first (incomplete first)
+    if (a.isCompleted !== b.isCompleted) {
+      return a.isCompleted ? 1 : -1
+    }
+    // Then by task sort order
+    return a.taskSort - b.taskSort
+  })
+})
+
+const fetchPageData = async () => {
+  requestIsOngoing.value = true;
+  try {
+    // Fixed: await the fetchTasks call and get the result
+    const result = await todoStore.fetchTasks();
+
+    // Also fetch categories and priorities for filters
+    await todoStore.fetchCategories();
+    await todoStore.fetchPriorities();
+
+    console.log('Tasks:', todoStore.tasks);
+
+    // Use the store's tasks data
+    data.data = todoStore.tasks;
+    // Handle errors if the result has them
+
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    data.errors = ['Failed to fetch tasks'];
+  } finally {
+    requestIsOngoing.value = false;
+  }
+};
+
+// Methods
+const updateFilters = () => {
+  // Apply filters - they're already reactive
+  console.log('Filters updated:', localFilters.value)
+}
+
+const openTaskDetails = (task: ITodoTask) => {
+  selectedTask.value = task
+  showTaskModal.value = true
+}
+
+const closeTaskModal = () => {
+  showTaskModal.value = false
+  selectedTask.value = null
+}
+
+const openCreateForm = () => {
+  taskToEdit.value = null
+  isEditMode.value = false
+  formData.value = {
+    taskName: '',
+    taskSort: getNextSortOrder(),
+    dueDt: '',
+    isCompleted: false,
+    isArchived: false,
+    todoCategoryId: '',
+    todoPriorityId: ''
+  }
+  showFormModal.value = true
+}
+
+const openEditForm = (task: ITodoTask) => {
+  taskToEdit.value = task
+  isEditMode.value = true
+  formData.value = {
+    taskName: task.taskName,
+    taskSort: task.taskSort,
+    dueDt: task.dueDt ? formatDateForInput(task.dueDt) : '',
+    isCompleted: task.isCompleted,
+    isArchived: task.isArchived,
+    todoCategoryId: task.todoCategoryId,
+    todoPriorityId: task.todoPriorityId
+  }
+  showTaskModal.value = false
+  showFormModal.value = true
+}
+
+const closeFormModal = () => {
+  showFormModal.value = false
+  taskToEdit.value = null
+  isEditMode.value = false
+  formData.value = {
+    taskName: '',
+    taskSort: 0,
+    dueDt: '',
+    isCompleted: false,
+    isArchived: false,
+    todoCategoryId: '',
+    todoPriorityId: ''
+  }
+}
+
+const getNextSortOrder = (): number => {
+  if (!data.data || data.data.length === 0) return 1
+  const maxSort = Math.max(...data.data.map(t => t.taskSort), 0)
+  return maxSort + 1
+}
+
+const formatDateForInput = (dateString: string): string => {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+const handleQuickSave = async () => {
+  try {
+    const taskData = {
+      ...formData.value,
+      dueDt: formData.value.dueDt || undefined
+    }
+
+    if (isEditMode.value && taskToEdit.value) {
+      await todoStore.updateTask(taskToEdit.value.id, {
+        ...taskData,
+        id: taskToEdit.value.id,
+        syncDt: taskToEdit.value.syncDt
+      })
+    } else {
+      await todoStore.addTask(taskData)
+    }
+
+    closeFormModal()
+    await fetchPageData() // Refresh the data
+  } catch (error) {
+    console.error('Error saving task:', error)
+  }
+}
+
+const handleDeleteTask = async (taskId: string) => {
+  const confirmed = confirm('Are you sure you want to delete this task?')
+  if (confirmed) {
+    try {
+      await todoStore.removeTask(taskId)
+      closeTaskModal()
+      await fetchPageData() // Refresh the data
+    } catch (error) {
+      console.error('Error deleting task:', error)
+    }
+  }
+}
+
+const handleToggleComplete = async (taskId: string) => {
+  try {
+    await todoStore.toggleTaskCompletion(taskId)
+    await fetchPageData() // Refresh the data
+  } catch (error) {
+    console.error('Error toggling task completion:', error)
+  }
+}
+
+const getCategoryName = (categoryId: string): string => {
+  const category = todoStore.categories.find(c => c.id === categoryId)
+  return category?.categoryName || 'Unknown'
+}
+
+const getPriorityName = (priorityId: string): string => {
+  const priority = todoStore.priorities.find(p => p.id === priorityId)
+  return priority?.priorityName || 'Unknown'
+}
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString()
+}
+
+const isOverdue = (task: ITodoTask): boolean => {
+  if (!task.dueDt || task.isCompleted) return false
+  const dueDate = new Date(task.dueDt)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return dueDate < today
+}
+
+onMounted(async () => {
+  await fetchPageData();
+});
+</script>
+
+<style scoped>
+.table-responsive {
+  border-radius: 0.375rem;
+}
+
+.btn-group .btn {
+  border-radius: 0.25rem;
+  margin-right: 0.125rem;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.modal {
+  z-index: 1055;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}
+
+@media (max-width: 768px) {
+  .btn-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .btn-group .btn {
+    margin-right: 0;
+  }
+}
+</style>

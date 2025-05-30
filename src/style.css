@@ -1,0 +1,79 @@
+/* Custom styles to enhance Bootstrap */
+:root {
+  --bs-blue: #0d6efd;
+  --bs-red: #dc3545;
+  --bs-green: #198754;
+  --bs-yellow: #ffc107;
+  --bs-orange: #fd7e14;
+  --bs-purple: #6f42c1;
+}
+
+body {
+  background-color: #f8f9fa;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.task-completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-archived {
+  border-left: 4px solid var(--bs-orange) !important;
+}
+
+.task-completed-border {
+  border-left: 4px solid var(--bs-green) !important;
+}
+
+.task-pending-border {
+  border-left: 4px solid var(--bs-blue) !important;
+}
+
+.prohibited-word-tag {
+  background-color: var(--bs-red);
+  color: white;
+  font-size: 0.75rem;
+}
+
+.admin-panel {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.filter-summary {
+  background-color: #e9ecef;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-sm-icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--bs-blue);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1055;
+}
