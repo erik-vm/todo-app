@@ -2,8 +2,8 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-          <h1 class="h3">Todo Tasks</h1>
+        <div class="d-flex justify-content-end align-items-center mb-4">
+
           <div>
 
             <button
@@ -311,6 +311,17 @@
             </div>
             <form @submit.prevent="handleQuickSave">
               <div class="modal-body">
+                <!-- Form Errors -->
+                <div v-if="formErrors.length > 0" class="alert alert-danger" role="alert">
+                  <h6 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Please fix the following errors:
+                  </h6>
+                  <ul class="mb-0">
+                    <li v-for="error in formErrors" :key="error">{{ error }}</li>
+                  </ul>
+                </div>
+
                 <div class="mb-3">
                   <label for="taskName" class="form-label">Task Name *</label>
                   <input
@@ -318,9 +329,15 @@
                     v-model="formData.taskName"
                     type="text"
                     class="form-control"
+                    :class="{ 'is-invalid': formErrors.some(e => e.includes('Task name')) }"
                     required
                     placeholder="Enter task name..."
+                    @input="formErrors = []"
                   >
+                  <div class="form-text">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Prohibited words: {{ prohibitedStore.prohibitedWords.join(', ') }}
+                  </div>
                 </div>
                 <div class="row">
                   <div class="col-md-6 mb-3">
@@ -376,6 +393,12 @@
                         >
                           <i class="fas fa-times"></i>
                         </button>
+                      </div>
+                      <div class="form-text mt-1">
+                        <small class="text-muted">
+                          <i class="fas fa-shield-alt me-1"></i>
+                          Cannot contain: {{ prohibitedStore.prohibitedWords.join(', ') }}
+                        </small>
                       </div>
                     </div>
                   </div>
@@ -433,6 +456,12 @@
                           <i class="fas fa-times"></i>
                         </button>
                       </div>
+                      <div class="form-text mt-1">
+                        <small class="text-muted">
+                          <i class="fas fa-shield-alt me-1"></i>
+                          Cannot contain: {{ prohibitedStore.prohibitedWords.join(', ') }}
+                        </small>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -487,8 +516,12 @@
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @click="closeFormModal">Cancel</button>
-                <button type="submit" class="btn btn-primary">
+                <button type="button" class="btn btn-secondary" @click="closeFormModal" :disabled="isFormSubmitting">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" :disabled="isFormSubmitting">
+                  <span v-if="isFormSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  <i v-else class="fas" :class="isEditMode ? 'fa-save' : 'fa-plus'" ></i>
                   {{ isEditMode ? 'Update Task' : 'Create Task' }}
                 </button>
               </div>
@@ -504,6 +537,7 @@
 <script setup lang="ts">
 import { ITodoTask } from "@/domain/ITodoTask";
 import { useTodoStore } from "@/stores/todo";
+import { useProhibitedStore } from "@/stores/prohibited";
 import { IResultObject } from "@/types/IResultObject";
 import type { IFilterOptions } from '@/types/IFilterOptions'
 import { ref, reactive, onMounted, computed } from "vue";
@@ -511,6 +545,7 @@ import { ref, reactive, onMounted, computed } from "vue";
 const requestIsOngoing = ref(false);
 const data = reactive<IResultObject<ITodoTask[]>>({});
 const todoStore = useTodoStore()
+const prohibitedStore = useProhibitedStore()
 
 // Modal state
 const showTaskModal = ref(false)
@@ -543,6 +578,10 @@ const showNewCategoryForm = ref(false)
 const showNewPriorityForm = ref(false)
 const newCategoryName = ref('')
 const newPriorityName = ref('')
+
+// Form validation state
+const formErrors = ref<string[]>([])
+const isFormSubmitting = ref(false)
 
 // Computed properties
 const filteredTasks = computed(() => {
@@ -660,6 +699,10 @@ const closeFormModal = () => {
   showNewPriorityForm.value = false
   newCategoryName.value = ''
   newPriorityName.value = ''
+
+  // Reset form validation
+  formErrors.value = []
+  isFormSubmitting.value = false
 }
 
 const getNextSortOrder = (): number => {
@@ -679,6 +722,12 @@ const formatDateForInput = (dateString: string): string => {
 }
 
 const handleQuickSave = async () => {
+  if (!validateTaskForm()) {
+    return
+  }
+
+  isFormSubmitting.value = true
+
   try {
     const taskData = {
       ...formData.value,
@@ -699,6 +748,9 @@ const handleQuickSave = async () => {
     await fetchPageData() // Refresh the data
   } catch (error) {
     console.error('Error saving task:', error)
+    formErrors.value.push('Failed to save task. Please try again.')
+  } finally {
+    isFormSubmitting.value = false
   }
 }
 
@@ -750,6 +802,13 @@ const isOverdue = (task: ITodoTask): boolean => {
 const createCategory = async () => {
   if (!newCategoryName.value.trim()) return
 
+  // Check for prohibited words in category name
+  const prohibitedWordsFound = checkForProhibitedWords(newCategoryName.value)
+  if (prohibitedWordsFound.length > 0) {
+    alert(`Category name contains prohibited words: ${prohibitedWordsFound.join(', ')}`)
+    return
+  }
+
   try {
     const categoryData = {
       categoryName: newCategoryName.value.trim(),
@@ -774,6 +833,13 @@ const cancelNewCategory = () => {
 const createPriority = async () => {
   if (!newPriorityName.value.trim()) return
 
+  // Check for prohibited words in priority name
+  const prohibitedWordsFound = checkForProhibitedWords(newPriorityName.value)
+  if (prohibitedWordsFound.length > 0) {
+    alert(`Priority name contains prohibited words: ${prohibitedWordsFound.join(', ')}`)
+    return
+  }
+
   try {
     const priorityData = {
       priorityName: newPriorityName.value.trim(),
@@ -795,7 +861,51 @@ const cancelNewPriority = () => {
   newPriorityName.value = ''
 }
 
+const checkForProhibitedWords = (text: string): string[] => {
+  const foundWords: string[] = []
+  const textLower = text.toLowerCase()
+
+  prohibitedStore.prohibitedWords.forEach(word => {
+    if (textLower.includes(word.toLowerCase())) {
+      foundWords.push(word)
+    }
+  })
+
+  return foundWords
+}
+
+const validateTaskForm = (): boolean => {
+  formErrors.value = []
+
+  // Check for empty task name
+  if (!formData.value.taskName.trim()) {
+    formErrors.value.push('Task name is required')
+    return false
+  }
+
+  // Check for prohibited words in task name
+  const prohibitedWordsFound = checkForProhibitedWords(formData.value.taskName)
+  if (prohibitedWordsFound.length > 0) {
+    formErrors.value.push(`Task name contains prohibited words: ${prohibitedWordsFound.join(', ')}`)
+    return false
+  }
+
+  // Check required fields
+  if (!formData.value.todoCategoryId) {
+    formErrors.value.push('Category is required')
+  }
+
+  if (!formData.value.todoPriorityId) {
+    formErrors.value.push('Priority is required')
+  }
+
+  return formErrors.value.length === 0
+}
+
 onMounted(async () => {
+  // Load prohibited words
+  prohibitedStore.loadProhibitedWords()
+  // Fetch page data
   await fetchPageData();
 });
 </script>
