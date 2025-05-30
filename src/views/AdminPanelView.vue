@@ -61,16 +61,16 @@
             <div
               v-for="word in prohibitedStore.prohibitedWords"
               :key="word"
-              class="badge bg-danger d-flex align-items-center"
-              style="font-size: 0.9rem;"
+              class="badge bg-danger d-flex align-items-center mx-1"
+              style="font-size: 0.9rem; color: white;"
             >
               <span>{{ word  }}</span>
               <button
                 @click="removeWord(word)"
-                class="btn-close btn-close-white ms-2 mx-1 p-2"
-                style="font-size: 0.6rem;"
+                class="btn-close btn-close-white ms-2 p-2"
+                style="font-size: 0.9rem; color: white;"
                 title="Remove word"
-              ></button>
+              ><i class="bi bi-x-lg"></i></button>
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useProhibitedStore } from '../stores/prohibited'
+import { useProhibitedStore } from '../stores/prohibitedWordsStore'
 import { getProhibitedWordsFromText } from '../utils/validation'
 
 const prohibitedStore = useProhibitedStore()

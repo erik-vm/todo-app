@@ -140,28 +140,28 @@
                   <thead class="table-light">
                     <tr>
                       <th>
-                        <i class="fas fa-tasks me-2"></i>Task Name
+                     Task Name
                       </th>
                       <th>
-                        <i class="fas fa-sort-numeric-up me-2"></i>Sort
+                       Sort
                       </th>
                       <th>
-                        <i class="fas fa-calendar me-2"></i>Created Date
+                        Created Date
                       </th>
                       <th>
-                        <i class="fas fa-calendar-alt me-2"></i>Due Date
+                       Due Date
                       </th>
                       <th>
-                        <i class="fas fa-folder me-2"></i>Category
+                        Category
                       </th>
                       <th>
-                        <i class="fas fa-flag me-2"></i>Priority
+                        Priority
                       </th>
                       <th>
-                        <i class="fas fa-info-circle me-2"></i>Status
+                        Status
                       </th>
                       <th>
-                        <i class="fas fa-cogs me-2"></i>Actions
+                       Actions
                       </th>
                     </tr>
                   </thead>
@@ -256,7 +256,7 @@
                 <i class="fas fa-tasks me-2"></i>
                 {{ selectedTask.taskName }}
               </h5>
-              <button type="button" class="btn-close" @click="closeTaskModal"></button>
+              <button type="button" class="btn-close" @click="closeTaskModal"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body">
               <div class="row">
@@ -295,7 +295,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">{{ isEditMode ? 'Edit Task' : 'Create New Task' }}</h5>
-              <button type="button" class="btn-close" @click="closeFormModal"></button>
+              <button type="button" class="btn-close" @click="closeFormModal"><i class="bi bi-x-lg"></i></button>
             </div>
             <form @submit.prevent="handleQuickSave">
               <div class="modal-body">
@@ -450,7 +450,7 @@
                 <i class="fas fa-folder me-2"></i>
                 Manage Categories
               </h5>
-              <button type="button" class="btn-close" @click="showCategoryManager = false"></button>
+              <button type="button" class="btn-close" @click="showCategoryManager = false"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body">
               <!-- Add New Category -->
@@ -515,7 +515,7 @@
                 <i class="fas fa-flag me-2"></i>
                 Manage Priorities
               </h5>
-              <button type="button" class="btn-close" @click="showPriorityManager = false"></button>
+              <button type="button" class="btn-close" @click="showPriorityManager = false"><i class="bi bi-x-lg"></i></button>
             </div>
             <div class="modal-body">
               <!-- Add New Priority -->
@@ -575,7 +575,7 @@
 <script setup lang="ts">
 import { ITodoTask } from "@/domain/ITodoTask";
 import { useTodoStore } from "@/stores/todoStore";
-import { useProhibitedStore } from "@/stores/prohibited";
+import { useProhibitedStore } from "@/stores/prohibitedWordsStore";
 import { IResultObject } from "@/types/IResultObject";
 import type { IFilterOptions } from '@/types/IFilterOptions'
 import { ref, reactive, onMounted, computed } from "vue";
