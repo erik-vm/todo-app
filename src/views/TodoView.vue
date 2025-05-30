@@ -2,26 +2,14 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
-        <div class="d-flex justify-content-end align-items-center mb-4">
 
-          <div>
 
-            <button
-              class="btn btn-success"
-              @click="openCreateForm"
-            >
-              <i class="fas fa-plus me-2"></i>
-              Add new task
-            </button>
-          </div>
-        </div>
-
-        <!-- Filters -->
+          <!-- Filters -->
         <div class="card mb-4">
           <div class="card-body">
-            <h5 class="card-title">Filters</h5>
-            <div class="row">
-              <div class="col-md-3">
+            <h5 class="card-title">Filters & Actions</h5>
+            <div class="row g-3 align-items-end">
+              <div class="col-lg-2 col-md-6">
                 <div class="form-check">
                   <input
                     class="form-check-input"
@@ -35,7 +23,8 @@
                   </label>
                 </div>
               </div>
-              <div class="col-md-3">
+
+              <div class="col-lg-2 col-md-6">
                 <div class="form-check">
                   <input
                     class="form-check-input"
@@ -49,38 +38,74 @@
                   </label>
                 </div>
               </div>
-              <div class="col-md-3">
-                <select
-                  class="form-select"
-                  v-model="localFilters.categoryId"
-                  @change="updateFilters"
-                >
-                  <option value="">All Categories</option>
-                  <option
-                    v-for="category in todoStore.categories"
-                    :key="category.id"
-                    :value="category.id"
+
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label small text-muted mb-1">Category</label>
+                <div class="d-flex">
+                  <select
+                    class="form-select form-select-sm me-1"
+                    v-model="localFilters.categoryId"
+                    @change="updateFilters"
                   >
-                    {{ category.categoryName }}
-                  </option>
-                </select>
-              </div>
-              <div class="col-md-3">
-                <select
-                  class="form-select"
-                  v-model="localFilters.priorityId"
-                  @change="updateFilters"
-                >
-                  <option value="">All Priorities</option>
-                  <option
-                    v-for="priority in todoStore.priorities"
-                    :key="priority.id"
-                    :value="priority.id"
+                    <option value="">All Categories</option>
+                    <option
+                      v-for="category in todoStore.categories"
+                      :key="category.id"
+                      :value="category.id"
+                    >
+                      {{ category.categoryName }}
+                    </option>
+                  </select>
+                  <button
+                    class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                    @click="showCategoryManager = true"
+                    title="Manage Categories"
                   >
-                    {{ priority.priorityName }}
-                  </option>
-                </select>
+                    <i class="fas fa-cog"></i>
+                  </button>
+                </div>
               </div>
+
+              <div class="col-lg-3  col-md-6">
+                <label class="form-label small text-muted mb-1">Priority</label>
+                <div class="d-flex">
+                  <select
+                    class="form-select form-select-sm me-1"
+                    v-model="localFilters.priorityId"
+                    @change="updateFilters"
+                  >
+                    <option value="">All Priorities</option>
+                    <option
+                      v-for="priority in todoStore.priorities"
+                      :key="priority.id"
+                      :value="priority.id"
+                    >
+                      {{ priority.priorityName }}
+                    </option>
+                  </select>
+                  <button
+                    class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                    @click="showPriorityManager = true"
+                    title="Manage Priorities"
+                  >
+                    <i class="fas fa-cog"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="col-lg-2 col-md-6">
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-success btn-sm flex-fill"
+                    @click="openCreateForm"
+                  >
+                    <i class="fas fa-plus me-1"></i>
+                    Add new task
+                  </button>
+                </div>
+              </div>
+
+
             </div>
           </div>
         </div>
@@ -141,21 +166,14 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      v-for="item in sortedTasks"
-                      :key="item.id"
-                      :class="{
-                        'table-success': item.isCompleted,
-                        'table-warning': !item.isCompleted && isOverdue(item),
-                        'opacity-75': item.isArchived
-                      }"
-                    >
+                    <tr v-for="item in sortedTasks" :key="item.id" :class="{
+                      'table-success': item.isCompleted,
+                      'table-warning': !item.isCompleted && isOverdue(item),
+                      'opacity-75': item.isArchived
+                    }">
                       <td>
-                        <span
-                          :class="{ 'text-decoration-line-through text-muted': item.isCompleted }"
-                          style="cursor: pointer;"
-                          @click="openTaskDetails(item)"
-                        >
+                        <span :class="{ 'text-decoration-line-through text-muted': item.isCompleted }"
+                          style="cursor: pointer;" @click="openTaskDetails(item)">
                           {{ item.taskName }}
                         </span>
                       </td>
@@ -183,68 +201,37 @@
                       </td>
                       <td>
                         <div class="d-flex flex-wrap gap-1">
-                          <span
-                            v-if="item.isCompleted"
-                            class="badge bg-success"
-                          >
+                          <span v-if="item.isCompleted" class="badge bg-success">
                             <i class="fas fa-check me-1"></i>Completed
                           </span>
-                          <span
-                            v-if="item.isArchived"
-                            class="badge bg-secondary"
-                          >
+                          <span v-if="item.isArchived" class="badge bg-secondary">
                             <i class="fas fa-archive me-1"></i>Archived
                           </span>
-                          <span
-                            v-if="!item.isCompleted && isOverdue(item)"
-                            class="badge bg-danger"
-                          >
+                          <span v-if="!item.isCompleted && isOverdue(item)" class="badge bg-danger">
                             <i class="fas fa-exclamation-triangle me-1"></i>Overdue
                           </span>
                         </div>
                       </td>
                       <td>
                         <div class="btn-group btn-group-sm" role="group">
-                          <button
-                            type="button"
-                            class="btn btn-outline-primary"
-                            @click="openEditForm(item)"
-                            title="Edit"
-                          >
+                          <button type="button" class="btn btn-outline-primary" @click="openEditForm(item)"
+                            title="Edit">
                             <i class="fas fa-edit"></i>
                           </button>
-                          <button
-                            type="button"
-                            class="btn btn-outline-info"
-                            @click="openTaskDetails(item)"
-                            title="Details"
-                          >
+                          <button type="button" class="btn btn-outline-info" @click="openTaskDetails(item)"
+                            title="Details">
                             <i class="fas fa-eye"></i>
                           </button>
-                          <button
-                            v-if="!item.isCompleted"
-                            type="button"
-                            class="btn btn-outline-success"
-                            @click="handleToggleComplete(item.id)"
-                            title="Mark Complete"
-                          >
+                          <button v-if="!item.isCompleted" type="button" class="btn btn-outline-success"
+                            @click="handleToggleComplete(item.id)" title="Mark Complete">
                             <i class="fas fa-check"></i>
                           </button>
-                          <button
-                            v-else
-                            type="button"
-                            class="btn btn-outline-secondary"
-                            @click="handleToggleComplete(item.id)"
-                            title="Mark Incomplete"
-                          >
+                          <button v-else type="button" class="btn btn-outline-secondary"
+                            @click="handleToggleComplete(item.id)" title="Mark Incomplete">
                             <i class="fas fa-undo"></i>
                           </button>
-                          <button
-                            type="button"
-                            class="btn btn-outline-danger"
-                            @click="handleDeleteTask(item.id)"
-                            title="Delete"
-                          >
+                          <button type="button" class="btn btn-outline-danger" @click="handleDeleteTask(item.id)"
+                            title="Delete">
                             <i class="fas fa-trash"></i>
                           </button>
                         </div>
@@ -281,7 +268,8 @@
                 <div class="col-md-6">
                   <p><strong>Status:</strong> {{ selectedTask.isCompleted ? 'Completed' : 'Pending' }}</p>
                   <p><strong>Created:</strong> {{ formatDate(selectedTask.createdDt) }}</p>
-                  <p><strong>Due Date:</strong> {{ selectedTask.dueDt ? formatDate(selectedTask.dueDt) : 'No due date' }}</p>
+                  <p><strong>Due Date:</strong> {{ selectedTask.dueDt ? formatDate(selectedTask.dueDt) : 'No due date'
+                  }}</p>
                 </div>
               </div>
             </div>
@@ -324,16 +312,9 @@
 
                 <div class="mb-3">
                   <label for="taskName" class="form-label">Task Name *</label>
-                  <input
-                    id="taskName"
-                    v-model="formData.taskName"
-                    type="text"
-                    class="form-control"
-                    :class="{ 'is-invalid': formErrors.some(e => e.includes('Task name')) }"
-                    required
-                    placeholder="Enter task name..."
-                    @input="formErrors = []"
-                  >
+                  <input id="taskName" v-model="formData.taskName" type="text" class="form-control"
+                    :class="{ 'is-invalid': formErrors.some(e => e.includes('Task name')) }" required
+                    placeholder="Enter task name..." @input="formErrors = []">
                   <div class="form-text">
                     <i class="fas fa-info-circle me-1"></i>
                     Prohibited words: {{ prohibitedStore.prohibitedWords.join(', ') }}
@@ -343,27 +324,14 @@
                   <div class="col-md-6 mb-3">
                     <label for="categoryId" class="form-label">Category *</label>
                     <div class="input-group">
-                      <select
-                        id="categoryId"
-                        v-model="formData.todoCategoryId"
-                        class="form-select"
-                        required
-                      >
+                      <select id="categoryId" v-model="formData.todoCategoryId" class="form-select" required>
                         <option value="">Select a category...</option>
-                        <option
-                          v-for="category in todoStore.categories"
-                          :key="category.id"
-                          :value="category.id"
-                        >
+                        <option v-for="category in todoStore.categories" :key="category.id" :value="category.id">
                           {{ category.categoryName }}
                         </option>
                       </select>
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        @click="showNewCategoryForm = !showNewCategoryForm"
-                        title="Add new category"
-                      >
+                      <button type="button" class="btn btn-outline-secondary"
+                        @click="showNewCategoryForm = !showNewCategoryForm" title="Add new category">
                         <i class="fas fa-plus"></i>
                       </button>
                     </div>
@@ -371,26 +339,13 @@
                     <!-- New Category Form -->
                     <div v-if="showNewCategoryForm" class="mt-2 p-2 border rounded bg-light">
                       <div class="input-group input-group-sm">
-                        <input
-                          v-model="newCategoryName"
-                          type="text"
-                          class="form-control"
-                          placeholder="New category name..."
-                          @keyup.enter="createCategory"
-                        >
-                        <button
-                          type="button"
-                          class="btn btn-success"
-                          @click="createCategory"
-                          :disabled="!newCategoryName.trim()"
-                        >
+                        <input v-model="newCategoryName" type="text" class="form-control"
+                          placeholder="New category name..." @keyup.enter="createCategory">
+                        <button type="button" class="btn btn-success" @click="createCategory"
+                          :disabled="!newCategoryName.trim()">
                           <i class="fas fa-check"></i>
                         </button>
-                        <button
-                          type="button"
-                          class="btn btn-secondary"
-                          @click="cancelNewCategory"
-                        >
+                        <button type="button" class="btn btn-secondary" @click="cancelNewCategory">
                           <i class="fas fa-times"></i>
                         </button>
                       </div>
@@ -405,27 +360,14 @@
                   <div class="col-md-6 mb-3">
                     <label for="priorityId" class="form-label">Priority *</label>
                     <div class="input-group">
-                      <select
-                        id="priorityId"
-                        v-model="formData.todoPriorityId"
-                        class="form-select"
-                        required
-                      >
+                      <select id="priorityId" v-model="formData.todoPriorityId" class="form-select" required>
                         <option value="">Select a priority...</option>
-                        <option
-                          v-for="priority in todoStore.priorities"
-                          :key="priority.id"
-                          :value="priority.id"
-                        >
+                        <option v-for="priority in todoStore.priorities" :key="priority.id" :value="priority.id">
                           {{ priority.priorityName }}
                         </option>
                       </select>
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary"
-                        @click="showNewPriorityForm = !showNewPriorityForm"
-                        title="Add new priority"
-                      >
+                      <button type="button" class="btn btn-outline-secondary"
+                        @click="showNewPriorityForm = !showNewPriorityForm" title="Add new priority">
                         <i class="fas fa-plus"></i>
                       </button>
                     </div>
@@ -433,26 +375,13 @@
                     <!-- New Priority Form -->
                     <div v-if="showNewPriorityForm" class="mt-2 p-2 border rounded bg-light">
                       <div class="input-group input-group-sm">
-                        <input
-                          v-model="newPriorityName"
-                          type="text"
-                          class="form-control"
-                          placeholder="New priority name..."
-                          @keyup.enter="createPriority"
-                        >
-                        <button
-                          type="button"
-                          class="btn btn-success"
-                          @click="createPriority"
-                          :disabled="!newPriorityName.trim()"
-                        >
+                        <input v-model="newPriorityName" type="text" class="form-control"
+                          placeholder="New priority name..." @keyup.enter="createPriority">
+                        <button type="button" class="btn btn-success" @click="createPriority"
+                          :disabled="!newPriorityName.trim()">
                           <i class="fas fa-check"></i>
                         </button>
-                        <button
-                          type="button"
-                          class="btn btn-secondary"
-                          @click="cancelNewPriority"
-                        >
+                        <button type="button" class="btn btn-secondary" @click="cancelNewPriority">
                           <i class="fas fa-times"></i>
                         </button>
                       </div>
@@ -468,33 +397,17 @@
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label for="dueDt" class="form-label">Due Date</label>
-                    <input
-                      id="dueDt"
-                      v-model="formData.dueDt"
-                      type="datetime-local"
-                      class="form-control"
-                    >
+                    <input id="dueDt" v-model="formData.dueDt" type="datetime-local" class="form-control">
                   </div>
                   <div class="col-md-6 mb-3">
                     <label for="taskSort" class="form-label">Sort Order</label>
-                    <input
-                      id="taskSort"
-                      v-model.number="formData.taskSort"
-                      type="number"
-                      class="form-control"
-                      min="0"
-                    >
+                    <input id="taskSort" v-model.number="formData.taskSort" type="number" class="form-control" min="0">
                   </div>
                 </div>
                 <div class="row">
                   <div class="col-md-6">
                     <div class="form-check">
-                      <input
-                        id="isCompleted"
-                        v-model="formData.isCompleted"
-                        class="form-check-input"
-                        type="checkbox"
-                      >
+                      <input id="isCompleted" v-model="formData.isCompleted" class="form-check-input" type="checkbox">
                       <label class="form-check-label" for="isCompleted">
                         Mark as completed
                       </label>
@@ -502,12 +415,7 @@
                   </div>
                   <div class="col-md-6">
                     <div class="form-check">
-                      <input
-                        id="isArchived"
-                        v-model="formData.isArchived"
-                        class="form-check-input"
-                        type="checkbox"
-                      >
+                      <input id="isArchived" v-model="formData.isArchived" class="form-check-input" type="checkbox">
                       <label class="form-check-label" for="isArchived">
                         Archive task
                       </label>
@@ -521,7 +429,7 @@
                 </button>
                 <button type="submit" class="btn btn-primary" :disabled="isFormSubmitting">
                   <span v-if="isFormSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                  <i v-else class="fas" :class="isEditMode ? 'fa-save' : 'fa-plus'" ></i>
+                  <i v-else class="fas" :class="isEditMode ? 'fa-save' : 'fa-plus'"></i>
                   {{ isEditMode ? 'Update Task' : 'Create Task' }}
                 </button>
               </div>
@@ -531,12 +439,142 @@
       </div>
       <div class="modal-backdrop fade show" @click="closeFormModal"></div>
     </div>
+
+    <!-- Category Manager Modal -->
+    <div v-if="showCategoryManager">
+      <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-folder me-2"></i>
+                Manage Categories
+              </h5>
+              <button type="button" class="btn-close" @click="showCategoryManager = false"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Add New Category -->
+              <div class="mb-4">
+                <h6>Add New Category</h6>
+                <div class="input-group">
+                  <input v-model="newCategoryName" type="text" class="form-control" placeholder="Category name..."
+                    @keyup.enter="createCategory">
+                  <button type="button" class="btn btn-success" @click="createCategory"
+                    :disabled="!newCategoryName.trim()">
+                    <i class="fas fa-plus me-1"></i>Add
+                  </button>
+                </div>
+                <div class="form-text">
+                  <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Cannot contain: {{ prohibitedStore.prohibitedWords.join(', ') }}
+                  </small>
+                </div>
+              </div>
+
+              <!-- Categories List -->
+              <div>
+                <h6>Existing Categories</h6>
+                <div v-if="todoStore.categories.length === 0" class="text-muted text-center py-3">
+                  No categories found
+                </div>
+                <div v-else class="list-group">
+                  <div v-for="category in todoStore.categories" :key="category.id"
+                    class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ category.categoryName }}</strong>
+                      <br>
+                      <small class="text-muted">Sort: {{ category.categorySort }}</small>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                      @click="deleteCategory(category.id, category.categoryName)" title="Delete Category">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showCategoryManager = false">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show" @click="showCategoryManager = false"></div>
+    </div>
+
+    <!-- Priority Manager Modal -->
+    <div v-if="showPriorityManager">
+      <div class="modal fade show" style="display: block;" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="fas fa-flag me-2"></i>
+                Manage Priorities
+              </h5>
+              <button type="button" class="btn-close" @click="showPriorityManager = false"></button>
+            </div>
+            <div class="modal-body">
+              <!-- Add New Priority -->
+              <div class="mb-4">
+                <h6>Add New Priority</h6>
+                <div class="input-group">
+                  <input v-model="newPriorityName" type="text" class="form-control" placeholder="Priority name..."
+                    @keyup.enter="createPriority">
+                  <button type="button" class="btn btn-success" @click="createPriority"
+                    :disabled="!newPriorityName.trim()">
+                    <i class="fas fa-plus me-1"></i>Add
+                  </button>
+                </div>
+                <div class="form-text">
+                  <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Cannot contain: {{ prohibitedStore.prohibitedWords.join(', ') }}
+                  </small>
+                </div>
+              </div>
+
+              <!-- Priorities List -->
+              <div>
+                <h6>Existing Priorities</h6>
+                <div v-if="todoStore.priorities.length === 0" class="text-muted text-center py-3">
+                  No priorities found
+                </div>
+                <div v-else class="list-group">
+                  <div v-for="priority in todoStore.priorities" :key="priority.id"
+                    class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ priority.priorityName }}</strong>
+                      <br>
+                      <small class="text-muted">Sort: {{ priority.prioritySort }}</small>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                      @click="deletePriority(priority.id, priority.priorityName)" title="Delete Priority">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showPriorityManager = false">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show" @click="showPriorityManager = false"></div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ITodoTask } from "@/domain/ITodoTask";
-import { useTodoStore } from "@/stores/todo";
+import { useTodoStore } from "@/stores/todoStore";
 import { useProhibitedStore } from "@/stores/prohibited";
 import { IResultObject } from "@/types/IResultObject";
 import type { IFilterOptions } from '@/types/IFilterOptions'
@@ -582,6 +620,10 @@ const newPriorityName = ref('')
 // Form validation state
 const formErrors = ref<string[]>([])
 const isFormSubmitting = ref(false)
+
+// Management modals state
+const showCategoryManager = ref(false)
+const showPriorityManager = ref(false)
 
 // Computed properties
 const filteredTasks = computed(() => {
@@ -900,6 +942,48 @@ const validateTaskForm = (): boolean => {
   }
 
   return formErrors.value.length === 0
+}
+
+const deleteCategory = async (categoryId: string, categoryName: string) => {
+  // Check if category is being used by any tasks
+  const tasksUsingCategory = data.data?.filter(task => task.todoCategoryId === categoryId) || []
+
+  if (tasksUsingCategory.length > 0) {
+    alert(`Cannot delete category "${categoryName}" because it is being used by ${tasksUsingCategory.length} task(s).`)
+    return
+  }
+
+  const confirmed = confirm(`Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`)
+  if (confirmed) {
+    try {
+      await todoStore.removeCategory(categoryId)
+      await todoStore.fetchCategories()
+    } catch (error) {
+      console.error('Error deleting category:', error)
+      alert('Failed to delete category. Please try again.')
+    }
+  }
+}
+
+const deletePriority = async (priorityId: string, priorityName: string) => {
+  // Check if priority is being used by any tasks
+  const tasksUsingPriority = data.data?.filter(task => task.todoPriorityId === priorityId) || []
+
+  if (tasksUsingPriority.length > 0) {
+    alert(`Cannot delete priority "${priorityName}" because it is being used by ${tasksUsingPriority.length} task(s).`)
+    return
+  }
+
+  const confirmed = confirm(`Are you sure you want to delete the priority "${priorityName}"? This action cannot be undone.`)
+  if (confirmed) {
+    try {
+      await todoStore.removePriority(priorityId)
+      await todoStore.fetchPriorities()
+    } catch (error) {
+      console.error('Error deleting priority:', error)
+      alert('Failed to delete priority. Please try again.')
+    }
+  }
 }
 
 onMounted(async () => {

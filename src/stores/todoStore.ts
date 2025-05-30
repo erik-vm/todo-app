@@ -9,6 +9,8 @@ import {
   getTodoPriorities,
   createTodoCategory,
   createTodoPriority,
+  deleteTodoCategory,
+  deleteTodoPriority,
 } from '../services/API'
 import type { ITodoTask } from '@/domain/ITodoTask'
 import type { ITodoCategory } from '@/domain/ITodoCategory'
@@ -127,6 +129,16 @@ export const useTodoStore = defineStore('todo', () => {
     }
   }
 
+  const removeCategory = async (id: string) => {
+    try {
+      await deleteTodoCategory(id)
+      tasks.value = tasks.value.filter((category) => category.id !== id)
+    } catch (err) {
+      error.value = 'Failed to delete category'
+      throw err
+    }
+  }
+
   const addPriority = async (priorityData: Omit<ITodoPriority, 'id' | 'syncDt'>) => {
     try {
       const newPriority = await createTodoPriority(priorityData)
@@ -138,6 +150,16 @@ export const useTodoStore = defineStore('todo', () => {
     }
   }
 
+
+const removePriority = async (id: string) => {
+    try {
+      await deleteTodoPriority(id)
+      tasks.value = tasks.value.filter((priority) => priority.id !== id)
+    } catch (err) {
+      error.value = 'Failed to delete priority'
+      throw err
+    }
+  }
   const setFilters = (newFilters: Partial<IFilterOptions>) => {
     filters.value = { ...filters.value, ...newFilters }
   }
@@ -161,5 +183,7 @@ export const useTodoStore = defineStore('todo', () => {
     addCategory,
     addPriority,
     setFilters,
+    removeCategory,
+    removePriority
   }
 })

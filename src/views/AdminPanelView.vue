@@ -64,10 +64,10 @@
               class="badge bg-danger d-flex align-items-center"
               style="font-size: 0.9rem;"
             >
-              <span>{{ word }}</span>
+              <span>{{ word  }}</span>
               <button
                 @click="removeWord(word)"
-                class="btn-close btn-close-white ms-2"
+                class="btn-close btn-close-white ms-2 mx-1 p-2"
                 style="font-size: 0.6rem;"
                 title="Remove word"
               ></button>

@@ -100,6 +100,10 @@ export const createTodoCategory = async (
   return response.data
 }
 
+export const deleteTodoCategory = async (id: string): Promise<void> => {
+  await api.delete(`/TodoCategories/${id}`)
+}
+
 // Todo Priorities API
 export const getTodoPriorities = async (): Promise<ITodoPriority[]> => {
   const response = await api.get('/TodoPriorities')
@@ -111,4 +115,8 @@ export const createTodoPriority = async (
 ): Promise<ITodoPriority> => {
   const response = await api.post('/TodoPriorities', priority)
   return response.data
+}
+
+export const deleteTodoPriority = async (id: string): Promise<void> => {
+  await api.delete(`/TodoPriorities/${id}`)
 }

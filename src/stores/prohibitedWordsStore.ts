@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import Cookies from 'js-cookie'
 
 const DEFAULT_PROHIBITED_WORDS = [
-  'spam', 'hack', 'virus', 'malware', 'phishing'
+  'hernesupp', 'duck around', 'kuulilennuteetunneliluuk'
 ]
 
 export const useProhibitedStore = defineStore('prohibited', () => {
