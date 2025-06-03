@@ -47,7 +47,7 @@ const logout = async () => {
             <li class="nav-item">
               <RouterLink class="nav-link text-dark" to="/todos">Todos</RouterLink>
             </li>
-              <li class="nav-item">
+            <li class="nav-item">
               <RouterLink class="nav-link text-dark" to="/admin">Admin panel</RouterLink>
             </li>
 

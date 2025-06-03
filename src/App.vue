@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import Header from '@/navigation/Header.vue'
-import Footer from '@/navigation/Footer.vue'
+import HeaderComp from './navigation/HeaderComp.vue';
+import FooterComp from './navigation/FooterComp.vue';
+
+
 import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <Header />
-
+  <HeaderComp />
   <main class="container">
     <RouterView />
   </main>
-
-  <Footer />
+<FooterComp/>
 </template>

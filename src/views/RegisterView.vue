@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <template>
   <div class=" d-flex align-items-center justify-content-center bg-light">
     <div class="container">
@@ -120,6 +121,7 @@ const handleRegister = async () => {
   try {
     await authStore.registerUser(form.value)
     router.push('/todos')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Registration failed. Please try again.'
   } finally {

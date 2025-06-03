@@ -659,7 +659,6 @@ const fetchPageData = async () => {
     await todoStore.fetchCategories();
     await todoStore.fetchPriorities();
 
-    console.log('Tasks:', todoStore.tasks);
 
     // Use the store's tasks data
     data.data = todoStore.tasks;
@@ -676,11 +675,7 @@ const fetchPageData = async () => {
   }
 };
 
-// Methods
-const updateFilters = () => {
-  // Apply filters - they're already reactive
-  console.log('Filters updated:', localFilters.value)
-}
+
 
 const openTaskDetails = (task: ITodoTask) => {
   selectedTask.value = task

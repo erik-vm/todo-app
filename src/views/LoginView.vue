@@ -1,3 +1,5 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <template>
   <div class=" d-flex align-items-center justify-content-center bg-light">
     <div class="container">
@@ -92,6 +94,7 @@ const handleLogin = async () => {
   try {
     await authStore.loginUser(form.value)
     router.push('/todos')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     error.value = err.response?.data?.message || 'Login failed. Please try again.'
   } finally {
